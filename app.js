@@ -1,5 +1,5 @@
-import getWeatherData from "./utils/httpReq.js";
-
+BASE_URL = "https://api.openweathermap.org/data/2.5";
+API_KEY = "e27371ed2c0abc5f7c1fc5ea1862e758";
 const DAYS = [
   "Sunday",
   "Monday",
@@ -10,13 +10,53 @@ const DAYS = [
   "Saturday",
 ];
 
-searchInput = document.querySelector("input");
-searchButton = document.querySelector("button");
-weatherContainer = document.getElementById("weather");
-forecastContainer = document.getElementById("forecast");
-locationIcon = document.getElementById("location");
+const getWeatherData = async (type, data) => {
+  let url = null;
+
+  switch (type) {
+    case "current":
+      if (typeof data === "string") {
+        url = `${BASE_URL}/weather?q=${data}&appid=${API_KEY}&units=metric`;
+      } else {
+        url = `${BASE_URL}/weather?lat=${data.latitude}&lon=${data.longitude}&appid=${API_KEY}&units=metric`;
+      }
+      break;
+    case "forecast":
+      if (typeof data === "string") {
+        url = `${BASE_URL}/forecast?q=${data}&appid=${API_KEY}&units=metric`;
+      } else {
+        url = `${BASE_URL}/forecast?lat=${data.latitude}&lon=${data.longitude}&appid=${API_KEY}&units=metric`;
+      }
+      break;
+    default:
+      url = `${BASE_URL}/weather?q=mashhad&appid=${API_KEY}&units=metric`;
+      break;
+  }
+
+  try {
+    const response = await fetch(url);
+    const json = await response.json();
+    if (+json.cod === 200) {
+      return json;
+    } else {
+      showModal(json.message);
+    }
+  } catch (error) {
+    showModal("An error occured when fetching data");
+  }
+};
+
+const searchInput = document.querySelector("input");
+const searchButton = document.querySelector("button");
+const weatherContainer = document.getElementById("weather");
+const forecastContainer = document.getElementById("forecast");
+const locationIcon = document.getElementById("location");
+const modal = document.getElementById("modal");
+const modalText = document.querySelector("p");
+const modalButton = document.getElementById("modal-button");
 
 const renderCurrentWeather = (data) => {
+  if (!data) return;
   const weatherJSX = `
     <h1>${data.name}, ${data.sys.country}</h1>
     <div id="main">
@@ -40,9 +80,9 @@ const getWeekDay = (date) => {
 };
 
 const renderForecastWeather = (data) => {
+  if (!data) return;
   forecastContainer.innerHTML = "";
   data = data.list.filter((obj) => obj.dt_txt.endsWith("12:00:00"));
-  console.log(data);
 
   data.forEach((i) => {
     const forecastJSX = `
@@ -63,7 +103,7 @@ const searchHandler = async () => {
   const cityName = searchInput.value;
 
   if (!cityName) {
-    alert("Please enter city name!");
+    showModal("Please enter city name!");
   }
 
   const currentData = await getWeatherData("current", cityName);
@@ -82,16 +122,28 @@ const positionCallback = async (position) => {
 };
 
 const errorCallback = (error) => {
-  console.log(error.message);
+  showModal(error.message);
 };
 
 const locationHandler = () => {
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(positionCallback, errorCallback);
   } else {
-    alert("Your browser dose not support geolocation");
+    showModal("Your browser dose not support geolocation");
   }
+};
+
+// modal
+
+const showModal = (text) => {
+  modalText.innerText = text;
+  modal.style.display = "flex";
+};
+
+const removeModal = () => {
+  modal.style.display = "none";
 };
 
 searchButton.addEventListener("click", searchHandler);
 locationIcon.addEventListener("click", locationHandler);
+modalButton.addEventListener("click", removeModal);
