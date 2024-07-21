@@ -1,3 +1,1 @@
-git remote add origin https://github.com/MagidAsh/Weather-app-JS.git
-git branch -M main
-git push -u origin main
+Meteorological project with the possibility of showing air temperature, humidity and wind speed and weather forecast for the next 5 days based on city search, as well as showing air temperature, humidity and wind speed and weather forecast for the next 5 days based on geographical coordinates
