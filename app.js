@@ -57,6 +57,7 @@ const modalButton = document.getElementById("modal-button");
 
 const renderCurrentWeather = (data) => {
   if (!data) return;
+
   const weatherJSX = `
     <h1>${data.name}, ${data.sys.country}</h1>
     <div id="main">
@@ -100,6 +101,7 @@ const renderForecastWeather = (data) => {
 };
 
 const searchHandler = async () => {
+  showLoader();
   const cityName = searchInput.value;
 
   if (!cityName) {
@@ -126,6 +128,7 @@ const errorCallback = (error) => {
 };
 
 const locationHandler = () => {
+  showLoader();
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(positionCallback, errorCallback);
   } else {
@@ -144,6 +147,21 @@ const removeModal = () => {
   modal.style.display = "none";
 };
 
+// loader
+
+const initHandler = async () => {
+  const currentData = await getWeatherData("current", "mashhad");
+  renderCurrentWeather(currentData);
+  const forecastData = await getWeatherData("forecast", "mashhad");
+  renderForecastWeather(forecastData);
+};
+
+const showLoader = () => {
+  const loaderJSX = `<span id="loader"></span>`;
+  weatherContainer.innerHTML = loaderJSX;
+};
+
 searchButton.addEventListener("click", searchHandler);
 locationIcon.addEventListener("click", locationHandler);
 modalButton.addEventListener("click", removeModal);
+document.addEventListener("DOMContentLoaded", initHandler);
